@@ -1,0 +1,302 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.niekam.nieko">
+<head>
+
+    <title>Kategorijos</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css">
+	
+<style>
+					
+		/* formos stilius */
+					
+	label, input { display:block; }
+	input.text { margin-bottom:12px; width:95%; padding: .4em; }
+	fieldset { padding:0; border:0; margin-top:25px; }
+	h1 { font-size: 1.2em; margin: .6em 0; }
+	div#users-contain { width: 350px; margin: 20px 0; }
+	div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+	div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+	.ui-dialog .ui-state-error { padding: .3em; }
+	.validateTips { border: 1px solid transparent; padding: 0.3em; }
+			
+	.anuliuotas {
+		color: red;
+	}
+	
+	.redaguoti {
+		color: green;
+	}
+	
+	.medis { width:200px }
+        
+	.medis1 { float:left }
+	
+	ul.ul_klase, ul.sarasas { list-style:none; }
+	ul.ul_klase { margin : 0; padding : 0; }
+	
+	ul.sarasas {display : none }
+    
+    .isplesti { width:15px;height:15px; }
+    
+    .sutraukti { width:15px;height:15px;display:none }
+	
+</style>
+
+<script src="jquery-3.4.1.min.js"></script>
+<script src="jquery-ui.js"></script>
+
+<script>
+
+$(document).ready ( function() {
+
+	var id_kategorija;
+	var suformuotas_medis;
+
+	pasiimtiKategorijas();
+
+	function pasiimtiKategorijas() {
+									
+			$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_kategorijos" 
+														
+			})
+			
+		.done(	function( data ) {	
+			
+			res_str = '<table align="center">'
+				+ '<tr><th>ID</th><th>Pavadinimas</th><th></th><th></th><th style="float: left">Žymos</th></tr>';
+			
+			
+			for ( i = 0; i < data.length; i++) {
+						
+				suformuotas_medis = '';
+	
+				if ( data[i].nuorodos.length > 0 ) {
+							
+					$.ajax({ 
+						
+						url: "http://localhost:8080/restfull/linko_zyma?kategorijos_id=" + data[i].nuorodos[0].id,
+						 async: false,	
+						success: function(data_med) {
+		
+						suformuotas_medis = '<div class="medis">'	//medzio pradzia
+											+ '<ul class="ul_klase"><li>'
+											+ '<div class="medis1"><img alt="" class="isplesti" src="Plus.png" >'
+											+ '<img alt="" class="sutraukti" src="minus.png" ></div>'
+											+ '<div></div><ul class="sarasas">';
+						
+						if (data_med.length > 0) {
+						
+							for (n=0; n < data_med.length; n++) {
+	
+								suformuotas_medis += '<li><div>' + data_med[n].zymos.zyma + '</div></li>';
+							
+							}
+						
+							suformuotas_medis += '</ul></li></ul></div>';	//medzio galas
+						
+						}	else {
+						
+							suformuotas_medis = '';
+							
+							}
+						
+						
+						}
+					});
+						
+				}
+			
+					res_str += '<tr class="s' + data [ i ].id  + '"data-pavadinimas="' + data[i].pavadinimas + '" data-id="' + data [ i ].id + '" >'
+							+ '<td>' + data [ i ].id + '</td>' 
+							+ '<td>' + data[i].pavadinimas + '</td>';
+										
+					res_str += '<td><input type="button" class="redaguoti" value="Redaguoti"></td>'
+					res_str += '<td><input type="button" class="anuliuotas" value="Naikinti"></td>'
+					res_str += '<td>' + suformuotas_medis + '</td>'
+					res_str += '</tr>';
+				
+			}			
+				res_str += '</table>';
+			
+			
+			$( '#kategorijos' ).html ( res_str );
+							
+			$( '.anuliuotas' ).on ( 'click', function() {
+						
+				id_kategorija = $( this ).parent().parent().data( 'id' );
+				trintiKategorija(id_kategorija);							
+			});
+			
+			$('.redaguoti').on ('click', function() {
+				
+				red_kategorija.dialog( "open" );
+							
+				id_kategorija = $( this ).parent().parent().data( 'id' );
+				$( '#pavadinimas' ).val ( $( this ).parent().parent().data( 'pavadinimas' ) );
+							
+			});
+			
+			$(".isplesti").click(function () {
+				$(this).toggle();
+				$(this).next().toggle();
+				$(this).parent().parent().children().last().toggle();
+			});
+		
+			$(".sutraukti").click(function () {
+				$(this).toggle();
+				$(this).prev().toggle();
+				$(this).parent().parent().children().last().toggle();
+			});
+			
+		});
+	}
+		
+	function trintiKategorija (id) {
+	
+		params_str = 'id=' + id;  
+		
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/del_kategorija?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiKategorijas();
+		});
+	}	
+
+
+	red_kategorija = $( "#dialog-form" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		buttons: {
+        "Išsaugoti pakeitimus": edit_kategorija,
+        Uždaryti: function() {
+         red_kategorija.dialog( "close" );
+        }
+		},
+	});
+
+	prideti_kategorija = $( "#dialog-form1" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 380,
+		modal: true,
+		buttons: {
+        "Įtraukti": add_kategorija,
+        Uždaryti: function() {
+         prideti_kategorija.dialog( "close" );
+        }
+		},
+	});	
+
+
+	function edit_kategorija() {
+		
+		redaguotas = {
+				
+			id: parseInt ( $( '#id' ).val()	)
+			, pav: $( '#pavadinimas' ).val()
+								
+		}
+			
+		params_str = 
+	
+			"id=" + id_kategorija
+			+ "&pavadinimas="  + redaguotas.pav 
+											
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/edit_kategorija?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiKategorijas();
+			
+		});
+		
+		red_kategorija.dialog( "close" );
+	
+	}		
+		
+	function add_kategorija() {
+
+		redaguotas = {
+				
+			pava: $( '#pavadinima' ).val()
+					
+		}
+			
+		params_str = 
+	
+			"pavadinimas="  + redaguotas.pava 
+											
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/add_kategorija?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiKategorijas();
+			
+		});
+		
+		prideti_kategorija.dialog( "close" );
+
+	}
+
+	$( "#itraukti" ).on( "click", function() { prideti_kategorija.dialog("open"); });
+	
+});
+
+ 
+
+ 
+</script>
+</head>
+
+<body>
+
+<a href="http://localhost:8080/zymos">Žymos</a>
+<a href="http://localhost:8080/nuorodos">Nuorodos</a>
+
+<div id="dialog-form" title="Redaguoti kategoriją">
+	<form>
+		<fieldset>
+	
+			<label for="pav">Pavadinimas</label>
+			<input type="text" name="pav" id="pavadinimas" value="pavadinimas" class="text">
+	  				  	                 
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+	
+<div id="dialog-form1" title="Įtraukti naują kategoriją">
+	<form>
+		<fieldset>
+	
+			<label for="pav">Pavadinimas</label>
+			<input type="text" name="pava" id="pavadinima" value="pavadinima" class="text">
+	  						
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+
+<div id="kategorijos"></div>
+
+
+<p><label for="itraukti"></label><input class="itraukti" type="button" value="Įtraukti naują" id="itraukti" title="Įtraukti naują"></p>
+
+
+</body>
+</html>

@@ -1,0 +1,516 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.niekam.nieko">
+<head>
+
+    <title>Nuorodos</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css">
+	
+<style>
+					
+		/* formos stilius */
+					
+	label, input { display:block; }
+	input.text { margin-bottom:12px; width:95%; padding: .4em; }
+	fieldset { padding:0; border:0; margin-top:25px; }
+	h1 { font-size: 1.2em; margin: .6em 0; }
+	div#users-contain { width: 350px; margin: 20px 0; }
+	div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+	div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+	.ui-dialog .ui-state-error { padding: .3em; }
+	.validateTips { border: 1px solid transparent; padding: 0.3em; }
+			
+	.anuliuotas {
+		color: red;
+	}
+	
+	.redaguoti {
+		color: green;
+	}
+	
+	form input {
+		display: inline-block;
+	}
+	
+	.zvaigz {
+
+		overflow: hidden;
+		vertical-align: bottom;
+		display: inline-block;
+		width: auto;
+		height: 30px;
+
+	}
+	
+	.zvaigz > input {
+
+		opacity: 0;
+		margin-right: -50%;
+
+	}
+
+	.zvaigz > label {
+
+		position: relative;
+		display: block;
+		float: right;
+		background: url('https://www.freeiconspng.com/uploads/star-images-png-3-9k-star-26-feb-2010-21.png');
+		background-size: 30px 30px;
+
+	}
+	
+	.zvaigz > label:before {
+
+		display: block;
+		opacity: 0;
+		content: '';
+		width: 30px;
+		height: 30px;
+		background: url('https://www.stickpng.com/assets/images/580b585b2edbce24c47b2913.png');
+		background-size: 30px 30px;
+		transition: opacity 0.2s linear;
+
+	}
+	
+	.zvaigz > label:hover:before,  
+	.zvaigz > label:hover ~ label:before,  
+	.zvaigz:not(:hover) > :checked ~ label:before { opacity: 1; }
+	
+	/* ------------- */
+	
+	.zvaigz2 {
+
+		overflow: hidden;
+		vertical-align: bottom;
+		display: inline-block;
+		width: auto;
+		height: 30px;
+
+	}
+	
+	.zvaigz2 > input {
+
+		opacity: 0;
+		margin-right: -50%;
+
+	}
+
+	.zvaigz2 > label {
+
+		position: relative;
+		display: block;
+		float: right;
+		background: url('https://www.freeiconspng.com/uploads/star-images-png-3-9k-star-26-feb-2010-21.png');
+		background-size: 30px 30px;
+
+	}
+	
+	.zvaigz2 > label:before {
+
+		display: block;
+		opacity: 0;
+		content: '';
+		width: 30px;
+		height: 30px;
+		background: url('https://www.stickpng.com/assets/images/580b585b2edbce24c47b2913.png');
+		background-size: 30px 30px;
+		transition: opacity 0.2s linear;
+
+	}
+	
+	.zvaigz2 > label:hover:before,  
+	.zvaigz2 > label:hover ~ label:before,  
+	.zvaigz2:not(:hover) > :checked ~ label:before { opacity: 1; }
+
+</style>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" 
+	integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" 
+	crossorigin="anonymous">
+</script>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+<script>
+
+$(document).ready ( function() {
+
+	var id_nuoroda;
+	var pasirinkta_kategorija = [];
+	
+	pasiimtiNuorodas()
+
+	function pasiimtiNuorodas() {
+									
+			$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_nuorodos" 
+														
+			})
+			
+		.done(	function( data ) {	
+			
+			res_str = '<table align="center">'
+				+ '<tr><th>ID</th><th>Pavadinimas</th><th>Linkas</th><th>Aprašymas</th><th>Data</th><th>Tipas</th><th>Reitingas</th><th>Kategorija</th></tr>';
+									
+			for ( i = 0; i < data.length; i++) {
+				res_s = ' ';
+				reitingas = data[i].reitingas;
+				
+				for (a=0; a < reitingas; a++) {
+								res_s += '<img src="https://www.stickpng.com/assets/images/580b585b2edbce24c47b2913.png" with="12" height="12" >'
+				}
+				
+				res_str += '<tr class="s' + data [ i ].id  
+										+ '"data-pavadinimas="' + data[i].pavadinimas 
+										+ '"data-linkas="' + data[i].linkas 
+										+ '"data-id="' + data [ i ].id 
+										+ '"data-aprasymas="' + data[i].aprasymas 
+										+ '"data-data="' + data[i].data
+										+ '"data-tipas="' + data[i].tipas
+										+ '"data-reitingas="' + data[i].reitingas
+										+ '"data-kategorija="' + data[i].kategorijos.pavadinimas + '" >'
+										
+						+ '<td>' + data [ i ].id + '</td>' 
+						+ '<td>' + data [ i ].pavadinimas + '</td>'
+						+ '<td>' + data [ i ].linkas + '</td>'
+						+ '<td>' + data [ i ].aprasymas + '</td>'
+						+ '<td>' + data [ i ].data + '</td>'
+						+ '<td>' + data [ i ].tipas + '</td>'
+						+ '<td>' + res_s + '</td>'
+						+ '<td>' + data [ i ].kategorijos.pavadinimas + '</td>';
+										
+				res_str += '<td><input type="button" class="redaguoti" value="Redaguoti"></td>'
+				res_str += '<td><input type="button" class="anuliuotas" value="Naikinti"></td>'
+				res_str += '</tr>';
+			}
+						
+			res_str += '</table>'
+			
+			$( '#nuorodos' ).html ( res_str );
+			
+			$( '.anuliuotas' ).on ( 'click', function() {
+						
+				id_nuoroda = $( this ).parent().parent().data( 'id' );
+				trintiNuoroda(id_nuoroda);							
+			});
+			
+			$('.redaguoti').on ('click', function() {
+				
+				pasiimtiKategorijasRedagavimui();
+							
+				id_nuoroda = $( this ).parent().parent().data( 'id' );
+				$( '#pavadinimas' ).val ( $( this ).parent().parent().data( 'pavadinimas' ) );
+				$( '#linkas' ).val ( $( this ).parent().parent().data( 'linkas' ) );
+				$( '#aprasymas' ).val ( $( this ).parent().parent().data( 'aprasymas' ) );
+				$( '#data' ).val ( $( this ).parent().parent().data( 'data' ) );
+				$( '#reitingas' ).val ( $( this ).parent().parent().data( 'reitingas' ) );
+				$( '#' + $( this ).parent().parent().data( 'tipas' ) ).prop ( 'checked', true );
+									
+			});
+			
+		});
+	}
+	
+	function trintiNuoroda (id) {
+	
+		params_str = 'id=' + id;  
+		
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/del_nuoroda?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiNuorodas();
+		});
+	}	
+
+
+	red_nuoroda = $( "#dialog-form" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		buttons: {
+        "Išsaugoti pakeitimus": edit_nuoroda,
+        Uždaryti: function() {
+         red_nuoroda.dialog( "close" );
+        }
+		},
+	});
+
+	prideti_nuoroda = $( "#dialog-form1" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 380,
+		modal: true,
+		buttons: {
+        "Įtraukti": add_nuoroda,
+        Uždaryti: function() {
+         prideti_nuoroda.dialog( "close" );
+        }
+		},
+	});	
+
+
+	function edit_nuoroda() {
+		
+		vardas = parseInt( $( '#dropdown' ).val() );
+		tipas =	$('input[name=tipas2]:checked').val();
+		reitingas = $('input[name=zvaigz2]:checked').val();
+		
+		redaguotas = {
+				
+			id: parseInt ( $( '#id' ).val()	)
+			, pavadinimas: $( '#pavadinimas' ).val()
+			, linkas: $( '#linkas' ).val() 
+			, aprasymas: $( '#aprasymas' ).val() 
+			, datas: $( '#data' ).val() 
+											
+		}
+			
+		params_str = 
+	
+			"id=" + id_nuoroda
+			+ '&pavadinimas='  + redaguotas.pavadinimas 
+			+ '&linkas=' + redaguotas.linkas
+			+ '&aprasymas=' + redaguotas.aprasymas
+			+ '&data=' + redaguotas.datas
+			+ '&tipas=' + tipas
+			+ '&reitingas=' + reitingas
+			+ '&kategorijos_id=' + vardas
+								
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/edit_nuoroda?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiNuorodas();
+			
+		});
+		
+		red_nuoroda.dialog( "close" );
+	
+	}		
+		
+	function add_nuoroda() {
+
+		vardas = parseInt( $( '#dropdown2' ).val() );
+			
+		tipas =	$('input[name=tipas]:checked').val();
+		reitingas = $('input[name=zvaigz]:checked').val();
+					
+		redaguotas = {
+				
+			pava: $( '#pavadinima' ).val()
+			, linka: $( '#linka' ).val() 
+			, aprasyma: $( '#aprasyma' ).val() 
+			, data: $( '#data2' ).val() 
+									
+		}
+			
+		params_str = 
+	
+			"pavadinimas="  + redaguotas.pava 
+			+ '&linkas=' + redaguotas.linka 
+			+ '&aprasymas=' + redaguotas.aprasyma
+			+ '&data=' + redaguotas.data
+			+ '&tipas=' + tipas
+			+ '&reitingas=' + reitingas
+			+ '&kategorijos_id=' + vardas
+								
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/add_nuoroda?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiNuorodas();
+			
+		});
+		
+		prideti_nuoroda.dialog( "close" );
+
+	}
+
+	$( "#itraukti" ).on( "click", function() { pasiimtiKategorijasItraukimui(); });
+
+
+	function pasiimtiKategorijasRedagavimui() {
+	
+		$( 'select#dropdown' ).html('');
+	
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_kategorijos"
+														
+			})
+			
+		.done(	function( data ) {	
+		
+			for ( i = 0; i < data.length; i++) {
+	
+				$( 'select#dropdown' ).append(  '<option value="' + data[ i ].id + '">' + data[ i ].pavadinimas + '</option>');
+			
+				pasirinkta_kategorija[ data[ i ].id ] = data[ i ].pavadinimas;
+			
+			}
+		
+		});
+		
+		red_nuoroda.dialog("open");	
+	}	
+
+	function pasiimtiKategorijasItraukimui() {
+	
+		$( 'select#dropdown2' ).html('');
+		
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_kategorijos"
+														
+			})
+			
+		.done(	function( data ) {	
+		
+			for ( i = 0; i < data.length; i++) {
+	
+				$( 'select#dropdown2' ).append(  '<option value="' + data[ i ].id + '">' + data[ i ].pavadinimas + '</option>');
+			
+				pasirinkta_kategorija[ data[ i ].id ] = data[ i ].pavadinimas;
+			
+			}
+		
+		});
+		
+		prideti_nuoroda.dialog("open");	
+	}	
+
+
+});
+ 
+   
+</script>
+</head>
+
+<body>
+
+<a href="http://localhost:8080/kategorijos">Kategorijos</a>
+<a href="http://localhost:8080/zymos">Žymos</a>
+
+<div id="dialog-form" title="Redaguoti nuorodą">
+	<form>
+		<fieldset>
+	
+			<label for="pavadinimas">Pavadinimas</label>
+			<input type="text" name="pavadinimas" id="pavadinimas" value=" " class="text">
+	  	  
+			<label for="linkas">Linkas</label>
+			<input type="text" name="linkas" id="linkas" value=" " class="text"> 
+			
+			<label for="aprasymas">Aprašymas</label>
+			<input type="text" name="aprasymas" id="aprasymas" value=" " class="text">
+			
+			<label for="data">Data</label>
+			<input type="text" name="data" id="data" value="data" class="text">
+			
+			<input type="radio" id="video" name="tipas2" value="video">Video
+			<input type="radio" id="audio" name="tipas2" value="audio">Audio
+			<input type="radio" id="html" name="tipas2" value="html">HTML
+			<input type="radio" id="file" name="tipas2" value="file">Failas
+			
+			<span class="zvaigz2">Reitingas:
+			
+				<input type="radio" id="Choice10" name="zvaigz2" value="5" >
+				<label for="Choice10">10</label>
+										
+				<input type="radio" id="Choice11" name="zvaigz2" value="4">
+				<label for="Choice11">11</label>
+								
+				<input type="radio" id="Choice12" name="zvaigz2" value="3" >
+				<label for="Choice12">12</label>
+								
+				<input type="radio" id="Choice13" name="zvaigz2" value="2">
+				<label for="Choice13">13</label>
+								
+				<input type="radio" id="Choice14" name="zvaigz2" value="1" >
+				<label for="Choice14">14</label>
+								
+			</span>	
+								
+			<label for="dropdown">Pasirink kategoriją</label>
+			<select name="klub" id="dropdown">
+			<option value=""></option>
+	  	                 
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+	
+<div id="dialog-form1" title="Įtraukti naują nuorodą">
+	<form>
+		<fieldset>
+	
+			<label for="pav">Pavadinimas</label>
+			<input type="text" name="pava" id="pavadinima" value=" " class="text">
+	  	  
+			<label for="linka">Linkas</label>
+			<input type="text" name="linka" id="linka" value=" " class="text"> 
+			
+			<label for="aprasyma">Aprašymas</label>
+			<input type="text" name="aprasyma" id="aprasyma" value=" " class="text">
+			
+			<label for="data">Data</label>
+			<input type="text" name="data" id="data2" value=" " class="text">
+			
+			<input type="radio" id="Choice1" name="tipas" value="video">Video
+			<input type="radio" id="Choice2" name="tipas" value="audio">Audio
+			<input type="radio" id="Choice3" name="tipas" value="html">HTML
+			<input type="radio" id="Choice4" name="tipas" value="file">Failas
+						
+			<span class="zvaigz">Reitingas:
+			
+				<input type="radio" id="Choice5" name="zvaigz" value="5" >
+				<label for="Choice5">5</label>
+										
+				<input type="radio" id="Choice6" name="zvaigz" value="4">
+				<label for="Choice6">6</label>
+								
+				<input type="radio" id="Choice7" name="zvaigz" value="3" >
+				<label for="Choice7">7</label>
+								
+				<input type="radio" id="Choice8" name="zvaigz" value="2" >
+				<label for="Choice8">8</label>
+								
+				<input type="radio" id="Choice9" name="zvaigz" value="1" checked>
+				<label for="Choice9">9</label>
+								
+			</span>				
+				
+			<label for="dropdown2">Pasirink kategoriją</label>
+			<select name="klub" id="dropdown2">
+			<option value=""></option>
+			
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+
+
+
+<div id="nuorodos"></div>
+
+<div id="nariu_sarasas" >
+	<p><div id="nariu" ></div></p>
+</div>
+
+<p><label for="itraukti"></label><input class="itraukti" type="button" value="Įtraukti naują" id="itraukti" title="Įtraukti naują"></p>
+
+
+</body>
+</html>

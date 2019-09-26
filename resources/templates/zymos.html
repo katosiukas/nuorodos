@@ -1,0 +1,286 @@
+<!DOCTYPE HTML>
+<html xmlns:th="http://www.niekam.nieko">
+<head>
+
+    <title>Žymos</title>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+	<link rel="stylesheet" href="//code.jquery.com/ui/1.12.1/themes/black-tie/jquery-ui.css">
+	
+<style>
+					
+		/* formos stilius */
+					
+	label, input { display:block; }
+	input.text { margin-bottom:12px; width:95%; padding: .4em; }
+	fieldset { padding:0; border:0; margin-top:25px; }
+	h1 { font-size: 1.2em; margin: .6em 0; }
+	div#users-contain { width: 350px; margin: 20px 0; }
+	div#users-contain table { margin: 1em 0; border-collapse: collapse; width: 100%; }
+	div#users-contain table td, div#users-contain table th { border: 1px solid #eee; padding: .6em 10px; text-align: left; }
+	.ui-dialog .ui-state-error { padding: .3em; }
+	.validateTips { border: 1px solid transparent; padding: 0.3em; }
+			
+	.anuliuotas {
+		color: red;
+	}
+	
+	.redaguoti {
+		color: green;
+	}
+	
+</style>
+
+<script src="https://code.jquery.com/jquery-3.4.1.min.js" 
+	integrity="sha256-CSXorXvZcTkaix6Yvo6HppcZGetbYMGWSFlBw8HfCJo=" 
+	crossorigin="anonymous">
+</script>
+
+<script src="https://code.jquery.com/ui/1.12.1/jquery-ui.js"></script>
+	
+<script>
+
+$(document).ready ( function() {
+
+	var id_zyma;
+
+	pasiimtiZymas();
+
+	function pasiimtiZymas() {
+									
+			$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_zymos" 
+														
+			})
+			
+		.done(	function( data ) {	
+			
+			res_str = '<table align="center">'
+				+ '<tr><th>ID</th><th>Žyma</th></tr>';
+									
+			for ( i = 0; i < data.length; i++) {
+				
+				res_str += '<tr class="s' + data [ i ].id  + '"data-zyma="' + data[i].zyma + '" data-id="' + data [ i ].id + '" >'
+						+ '<td>' + data [ i ].id + '</td>' 
+						+ '<td>' + data [ i ].zyma + '</td>';
+										
+				res_str += '<td><input type="button" class="redaguoti" value="Redaguoti"></td>'
+				res_str += '<td><input type="button" class="priskirti" value="Priskirti kategorijai"></td>'
+				res_str += '</tr>';
+			}
+						
+			res_str += '</table>';
+			
+			$( '#zymos' ).html ( res_str );
+							
+			$( '.priskirti' ).on ( 'click', function() {
+						
+				id_zyma = $( this ).parent().parent().data( 'id' );
+				pasiimtiKategorijas();							
+			});
+			
+			$('.redaguoti').on ('click', function() {
+				
+				red_zyma.dialog( "open" );
+							
+				id_zyma = $( this ).parent().parent().data( 'id' );
+				$( '#pavadinimas' ).val ( $( this ).parent().parent().data( 'zyma' ) );
+							
+			});
+			
+		});
+	}
+		
+	function pasiimtiKategorijas () {
+	
+		$( 'select#dropdown' ).html('');
+	
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/all_kategorijos"
+			}
+		)
+		.done( function( data ) {
+				
+			for ( i = 0; i < data.length; i++) {
+	
+				$( 'select#dropdown' ).append(  '<option value="' + data[ i ].id + '">' + data[ i ].pavadinimas + '</option>');
+			
+			}
+			
+		});
+	
+		priskirtiZyma.dialog("open");
+	}	
+
+
+	red_zyma = $( "#dialog-form" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 400,
+		modal: true,
+		buttons: {
+        "Išsaugoti pakeitimus": edit_zyma,
+        Uždaryti: function() {
+         red_zyma.dialog( "close" );
+        }
+		},
+	});
+
+	prideti_zyma = $( "#dialog-form1" ).dialog({
+		autoOpen: false,
+		height: 400,
+		width: 380,
+		modal: true,
+		buttons: {
+        "Įtraukti": add_zyma,
+        Uždaryti: function() {
+         prideti_zyma.dialog( "close" );
+        }
+		},
+	});	
+
+	priskirtiZyma = $("#dialog-form2").dialog({
+		autoOpen: false,
+		height: 400,
+		width: 380,
+		modal: true,
+		buttons: {
+        "Įtraukti": add_zyma_kategorijai,
+        Uždaryti: function() {
+         priskirtiZyma.dialog( "close" );
+        }
+		},
+	});	
+
+
+	function add_zyma_kategorijai() {
+	
+		kategorija = parseInt( $( '#dropdown' ).val() );
+	
+		params_str = 
+					"zymos_id=" + id_zyma
+					+ "&kategorijos_id=" + kategorija
+					
+		$.ajax({
+			url: "http://localhost:8080/restfull/add_Linko_zymos?" + params_str
+		})
+		.done(function(data) {
+		
+			pasiimtiZymas();
+		});
+		
+		priskirtiZyma.dialog("close");
+	}
+
+	function edit_zyma() {
+		
+		redaguotas = {
+				
+			id: parseInt ( $( '#id' ).val()	)
+			, pav: $( '#pavadinimas' ).val()
+								
+		}
+			
+		params_str = 
+	
+			"id=" + id_zyma
+			+ "&zyma="  + redaguotas.pav 
+											
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/edit_zyma?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiZymas();
+			
+		});
+		
+		red_zyma.dialog( "close" );
+	
+	}		
+		
+	function add_zyma() {
+
+		redaguotas = {
+				
+			pava: $( '#pavadinima' ).val()
+					
+		}
+			
+		params_str = 
+	
+			"zyma="  + redaguotas.pava 
+											
+		$.ajax(
+			{
+				url: "http://localhost:8080/restfull/add_zyma?" + params_str
+			}
+		)
+		.done( function( data ) {
+				
+			pasiimtiZymas();
+			
+		});
+		
+		prideti_zyma.dialog( "close" );
+
+	}
+
+	$( "#itraukti" ).on( "click", function() { prideti_zyma.dialog("open"); });
+
+});  
+</script>
+</head>
+
+<body>
+
+<a href="http://localhost:8080/kategorijos">Kategorijos</a>
+<a href="http://localhost:8080/nuorodos">Nuorodos</a>
+
+<div id="dialog-form" title="Redaguoti žymą">
+	<form>
+		<fieldset>
+	
+			<label for="pavadinimas">Pavadinimas</label>
+			<input type="text" name="pavadinimas" id="pavadinimas" value="" class="text">
+	  				  	                 
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+	
+<div id="dialog-form1" title="Įtraukti naują žymą">
+	<form>
+		<fieldset>
+	
+			<label for="pav">Pavadinimas</label>
+			<input type="text" name="pava" id="pavadinima" value=" " class="text">
+	  						
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+
+<div id="dialog-form2" title="Priskirti zyma kategorijai">
+	<form>
+		<fieldset>
+	
+			<label for="dropdown">Pasirink kategorija</label>
+			<select name="klub" id="dropdown">
+			<option value=""></option>
+	  						
+			<input type="submit" tabindex="-1" style="position:absolute; top:-1000px">
+		</fieldset>
+	</form>
+</div>
+
+<div id="zymos"></div>
+
+<p><label for="itraukti"></label><input class="itraukti" type="button" value="Įtraukti naują" id="itraukti" title="Įtraukti naują"></p>
+
+
+</body>
+</html>
